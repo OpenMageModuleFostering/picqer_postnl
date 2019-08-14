@@ -12,6 +12,18 @@ class Picqer_PostNL_Helper_Data extends Mage_Core_Helper_Abstract
 
         return (bool)$active;
     }
+
+    /**
+     * Check whether to show PostNL options in admin
+     * @return bool
+     */
+    public function showPostNLOptions()
+    {
+        $showOptions = Mage::getStoreConfig('picqer_shipping_options/postnl_settings/picqer_postnl_showoptions');
+
+        return (bool)$showOptions;
+    }
+
     /**
      * Check whether the TIG PostNL extension is installed
      * @return bool
@@ -22,5 +34,4 @@ class Picqer_PostNL_Helper_Data extends Mage_Core_Helper_Abstract
 
         return (bool)$tigInstalled;
     }
-
 }

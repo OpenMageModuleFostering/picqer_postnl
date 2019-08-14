@@ -5,7 +5,7 @@ class Picqer_PostNL_Model_Adminhtml_Observer_ShipmentView extends TIG_PostNL_Mod
     public function addPrintLabelButton(Varien_Event_Observer $observer)
     {
         $helper = Mage::helper('picqer_postnl');
-        if ($helper->isExtensionActive()) {
+        if ($helper->isExtensionActive() && ! $helper->showPostNLOptions()) {
             return $observer;
         }
 
