@@ -12,19 +12,16 @@ class Picqer_PostNL_Model_Sales_Order_Api extends Mage_Sales_Model_Order_Api
      */
     public function picqerPostNL($orderIncrementId)
     {
-        $active = Mage::getStoreConfig('picqer_shipping_options/postnl_settings/picqer_postnl_active');
-        if ($active != 1)
+        if (! $this->extensionActive()) {
+            return [];
+        }
+
+        if (! $this->tigPostNlExtensionInstalled())
         {
-            return [ ];
+            return [];
         }
 
         $order = $this->_initOrder($orderIncrementId);
-
-        // Check if TIG_PostNL is installed and enabled
-        $tigInstalled = Mage::helper('core')->isModuleEnabled('TIG_PostNL');
-        if ( ! $tigInstalled) {
-            return [ ];
-        }
 
         // Fetch TIG_PostNL order
         $tigPostNlOrder = Mage::getModel('postnl_core/order')->loadByOrder($order);
@@ -59,8 +56,10 @@ class Picqer_PostNL_Model_Sales_Order_Api extends Mage_Sales_Model_Order_Api
             'expectedDeliveryTimeStart' => $this->toCorrectTimeZone($tigPostNlOrder->getExpectedDeliveryTimeStart(),
                 $storeTimezone)->format('H:i'),
             'expectedDeliveryTimeEnd'   => $expectedDeliveryTimeEnd,
-            'pakjeGemakAddress'         => $tigPostNlOrder->getIsPakjeGemak() || $tigPostNlOrder->getIsPakketautomaat() ? $this->_getAttributes($tigPostNlOrder->getPakjeGemakAddress(),
-                'order_address') : null,
+            'pakjeGemakAddress'         => $tigPostNlOrder->getIsPakjeGemak() || $tigPostNlOrder->getIsPakketautomaat()
+                ? $this->_getAttributes($tigPostNlOrder->getPakjeGemakAddress(), 'order_address')
+                : null,
+            'isBrievenbuspakje' => $this->useBuspakje($order, $tigPostNlOrder),
         ];
 
         return $result;
@@ -83,4 +82,94 @@ class Picqer_PostNL_Model_Sales_Order_Api extends Mage_Sales_Model_Order_Api
         return $dateTime;
     }
 
+    /**
+     * Determine if this is a cash on delivery order
+     * @param $order
+     * @return bool
+     */
+    private function isCod($order)
+    {
+        $codPaymentMethods = Mage::helper('postnl/payment')->getCodPaymentMethods();
+        $paymentMethod = $order->getPayment()->getMethod();
+        if (in_array($paymentMethod, $codPaymentMethods)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Are we allowed to use Buspakje by preferences from Magento
+     * @return mixed
+     */
+    private function canUseBuspakje()
+    {
+        return Mage::helper('postnl')->canUseBuspakje();
+    }
+
+    /**
+     * Does the order fit as a Buspakje
+     * @param $order
+     * @return mixed
+     */
+    private function fitsAsBuspakje($order)
+    {
+        $orderItems = $order->getItemsCollection();
+        return Mage::helper('postnl')->fitsAsBuspakje($orderItems, true);
+    }
+
+    /**
+     * Is this a Dutch shipment
+     * @param $order
+     * @return bool
+     */
+    private function isDutchShipment($order)
+    {
+        return $order->getShippingAddress()->getCountry() == 'NL';
+    }
+
+    /**
+     * Check whether this extension is active
+     * @return bool
+     */
+    private function extensionActive()
+    {
+        $active = Mage::getStoreConfig('picqer_shipping_options/postnl_settings/picqer_postnl_active');
+        if ($active != 1)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check whether the TIG PostNL extension is installed
+     * @return bool
+     */
+    private function tigPostNlExtensionInstalled()
+    {
+        $tigInstalled = Mage::helper('core')->isModuleEnabled('TIG_PostNL');
+        if ( ! $tigInstalled) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Calculate if this should be a buspakje shipment
+     * @param $order
+     * @param $tigOrder
+     * @return bool
+     */
+    private function useBuspakje($order, $tigOrder)
+    {
+        return $this->isDutchShipment($order)
+            && ! $this->isCod($order)
+            && ! $tigOrder->getIsPakjeGemak()
+            && ! $tigOrder->getIsPakketautomaat()
+            && $this->fitsAsBuspakje($order)
+            && $this->canUseBuspakje();
+    }
 }
