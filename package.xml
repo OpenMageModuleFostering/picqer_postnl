@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package>
+    <name>Picqer_PostNL</name>
+    <version>1.0.0</version>
+    <stability>stable</stability>
+    <license>MIT</license>
+    <channel>community</channel>
+    <extends/>
+    <summary>Extension to support PostNL shipments from TIG PostNL extension for Picqer.</summary>
+    <description>This extension enables you to use the official PostNL extension by TIG with Picqer. Shipments in Picqer will automatically use the right settings, based on the choices of your customer.</description>
+    <notes>First version of the Picqer_PostNL extension to support integration with Picqer and your Magento store with the TIG_PostNL extension.</notes>
+    <authors><author><name>Stephan Groen</name><user>stephangroen</user><email>stephan@picqer.com</email></author></authors>
+    <date>2015-07-09</date>
+    <time>12:26:01</time>
+    <contents><target name="magecommunity"><dir name="Picqer"><dir name="PostNL"><dir name="Helper"><file name="Data.php" hash="50023c1bdbcd34331dc380c239b1fbad"/></dir><dir name="Model"><file name="Active.php" hash="4d756a5f96e91f3f9be5194f7378d8bf"/><dir name="Sales"><dir name="Order"><file name="Api.php" hash="66b037b5b422e19e9eb3ecad0b24c400"/></dir></dir></dir><dir name="etc"><file name="api.xml" hash="6f5f5494324d29ae5ed9b14c3826dbad"/><file name="config.xml" hash="11db5c78279c13328828aa8abba867f2"/><file name="system.xml" hash="f2a526f1d32f243ef253e3d3b3883938"/></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Picqer_PostNL.xml" hash="908eb08b0b31bc34766f8cfa6aa4d713"/></dir></target></contents>
+    <compatible/>
+    <dependencies><required><php><min>5.4.0</min><max>5.6.9</max></php><package><name>TIG_PostNL</name><channel>community</channel><min>1.5.3</min><max/></package></required></dependencies>
+</package>
