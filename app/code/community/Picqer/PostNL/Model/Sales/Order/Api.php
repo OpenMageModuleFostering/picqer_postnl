@@ -12,57 +12,56 @@ class Picqer_PostNL_Model_Sales_Order_Api extends Mage_Sales_Model_Order_Api
      */
     public function picqerPostNL($orderIncrementId)
     {
-        if (! $this->extensionActive()) {
+        $helper = Mage::helper('picqer_postnl');
+        if (! $helper->isExtensionActive()) {
             return [];
         }
 
-        if (! $this->tigPostNlExtensionInstalled())
-        {
+        if (! $helper->isTIGPostNlExtensionInstalled()) {
             return [];
         }
 
+        // Get the order and the PakjeGemakAddress (if set)
         $order = $this->_initOrder($orderIncrementId);
+        $postNLHelper = Mage::helper('postnl');
 
-        // Fetch TIG_PostNL order
-        $tigPostNlOrder = Mage::getModel('postnl_core/order')->loadByOrder($order);
+        try {
+            $pakjeGemakAddress = $postNLHelper->getPakjeGemakAddressForOrder($order);
+            $tigPostNlOrder = Mage::getModel('postnl_core/order')->loadByOrder($order);
 
-        // Get the store time zone and change times to match the correct time zone
-        $storeTimezone = Mage::getStoreConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_TIMEZONE,
-            $tigPostNlOrder->getStoreId());
-        $storeTimezone = new DateTimeZone($storeTimezone);
+            // Get the store time zone and change times to match the correct time zone
+            $storeTimezone = Mage::getStoreConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_TIMEZONE, $tigPostNlOrder->getStoreId());
+            $storeTimezone = new DateTimeZone($storeTimezone);
 
-        if ($tigPostNlOrder->hasExpectedDeliveryTimeEnd()) {
-            $expectedDeliveryTimeEnd = $this->toCorrectTimeZone($tigPostNlOrder->getExpectedDeliveryTimeEnd(),
-                $storeTimezone)->format('H:i');
-        } else {
-            $expectedDeliveryTimeEnd = null;
+            if ($tigPostNlOrder->hasExpectedDeliveryTimeEnd()) {
+                $expectedDeliveryTimeEnd = $this->toCorrectTimeZone($tigPostNlOrder->getExpectedDeliveryTimeEnd(), $storeTimezone)->format('H:i');
+            } else {
+                $expectedDeliveryTimeEnd = null;
+            }
+
+            // Add TIG_PostNL information to API
+            $result = [
+                'confirmDate'               => $this->toCorrectTimeZone($tigPostNlOrder->getConfirmDate(), $storeTimezone)->format('Y-m-d H:i:s'),
+                'isActive'                  => $tigPostNlOrder->getIsActive(),
+                'shipmentCosts'             => $tigPostNlOrder->getShipmentCosts(),
+                'productCode'               => $tigPostNlOrder->getProductCode(),
+                'isPakjeGemak'              => $tigPostNlOrder->getIsPakjeGemak(),
+                'isCanceled'                => $tigPostNlOrder->getIsCanceled(),
+                'deliveryDate'              => $this->toCorrectTimeZone($tigPostNlOrder->getDeliveryDate(), $storeTimezone)->format('Y-m-d H:i:s'),
+                'type'                      => $tigPostNlOrder->getType(),
+                'mobilePhoneNumber'         => $tigPostNlOrder->getMobilePhoneNumber(),
+                'isPakketautomaat'          => $tigPostNlOrder->getIsPakketautomaat(),
+                'options'                   => $tigPostNlOrder->getUnserializedOptions(),
+                'expectedDeliveryTimeStart' => $this->toCorrectTimeZone($tigPostNlOrder->getExpectedDeliveryTimeStart(), $storeTimezone)->format('H:i'),
+                'expectedDeliveryTimeEnd'   => $expectedDeliveryTimeEnd,
+                'pakjeGemakAddress'         => empty($pakjeGemakAddress) ? null : $this->_getAttributes($pakjeGemakAddress),
+                'isBrievenbuspakje'         => $this->useBuspakje($order, $tigPostNlOrder),
+            ];
+
+            return $result;
+        } catch (\Exception $e) {
+            return [];
         }
-
-        // Add TIG_PostNL information to API
-        $result = [
-            'confirmDate'               => $this->toCorrectTimeZone($tigPostNlOrder->getConfirmDate(), $storeTimezone)
-                ->format('Y-m-d H:i:s'),
-            'isActive'                  => $tigPostNlOrder->getIsActive(),
-            'shipmentCosts'             => $tigPostNlOrder->getShipmentCosts(),
-            'productCode'               => $tigPostNlOrder->getProductCode(),
-            'isPakjeGemak'              => $tigPostNlOrder->getIsPakjeGemak(),
-            'isCanceled'                => $tigPostNlOrder->getIsCanceled(),
-            'deliveryDate'              => $this->toCorrectTimeZone($tigPostNlOrder->getDeliveryDate(), $storeTimezone)
-                ->format('Y-m-d H:i:s'),
-            'type'                      => $tigPostNlOrder->getType(),
-            'mobilePhoneNumber'         => $tigPostNlOrder->getMobilePhoneNumber(),
-            'isPakketautomaat'          => $tigPostNlOrder->getIsPakketautomaat(),
-            'options'                   => $tigPostNlOrder->getUnserializedOptions(),
-            'expectedDeliveryTimeStart' => $this->toCorrectTimeZone($tigPostNlOrder->getExpectedDeliveryTimeStart(),
-                $storeTimezone)->format('H:i'),
-            'expectedDeliveryTimeEnd'   => $expectedDeliveryTimeEnd,
-            'pakjeGemakAddress'         => $tigPostNlOrder->getIsPakjeGemak() || $tigPostNlOrder->getIsPakketautomaat()
-                ? $this->_getAttributes($tigPostNlOrder->getPakjeGemakAddress(), 'order_address')
-                : null,
-            'isBrievenbuspakje' => $this->useBuspakje($order, $tigPostNlOrder),
-        ];
-
-        return $result;
     }
 
 
@@ -128,34 +127,6 @@ class Picqer_PostNL_Model_Sales_Order_Api extends Mage_Sales_Model_Order_Api
         return $order->getShippingAddress()->getCountry() == 'NL';
     }
 
-    /**
-     * Check whether this extension is active
-     * @return bool
-     */
-    private function extensionActive()
-    {
-        $active = Mage::getStoreConfig('picqer_shipping_options/postnl_settings/picqer_postnl_active');
-        if ($active != 1)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Check whether the TIG PostNL extension is installed
-     * @return bool
-     */
-    private function tigPostNlExtensionInstalled()
-    {
-        $tigInstalled = Mage::helper('core')->isModuleEnabled('TIG_PostNL');
-        if ( ! $tigInstalled) {
-            return false;
-        }
-
-        return true;
-    }
 
     /**
      * Calculate if this should be a buspakje shipment

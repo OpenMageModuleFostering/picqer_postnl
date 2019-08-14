@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
 <package>
     <name>Picqer_PostNL</name>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
     <stability>stable</stability>
     <license>MIT</license>
     <channel>community</channel>
     <extends/>
     <summary>Extension to support PostNL shipments from TIG PostNL extension for Picqer.</summary>
     <description>This extension enables you to use the official PostNL extension by TIG with Picqer. Shipments in Picqer will automatically use the right settings, based on the choices of your customer.</description>
-    <notes>Added Letterbox product support.</notes>
+    <notes>Turns TIG PostNL fields back on when deactivating the Picqer PostNL extension. Better retrieval of PakjeGemak address.</notes>
     <authors><author><name>Stephan Groen</name><user>stephangroen</user><email>stephan@picqer.com</email></author></authors>
-    <date>2015-11-19</date>
-    <time>15:20:27</time>
-    <contents><target name="magecommunity"><dir name="Picqer"><dir name="PostNL"><dir name="Helper"><file name="Data.php" hash="50023c1bdbcd34331dc380c239b1fbad"/></dir><dir name="Model"><file name="Active.php" hash="4d756a5f96e91f3f9be5194f7378d8bf"/><dir name="Sales"><dir name="Order"><file name="Api.php" hash="5bb37d022c6cd232d1d4a04c101ff484"/></dir></dir></dir><dir name="etc"><file name="api.xml" hash="6f5f5494324d29ae5ed9b14c3826dbad"/><file name="config.xml" hash="11db5c78279c13328828aa8abba867f2"/><file name="system.xml" hash="f2a526f1d32f243ef253e3d3b3883938"/></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Picqer_PostNL.xml" hash="908eb08b0b31bc34766f8cfa6aa4d713"/></dir></target></contents>
+    <date>2017-01-30</date>
+    <time>14:50:56</time>
+    <contents><target name="magecommunity"><dir name="Picqer"><dir name="PostNL"><dir name="Helper"><file name="Data.php" hash="da57ee165a0b33beceb01f108e870cf7"/></dir><dir name="Model"><file name="Active.php" hash="4d756a5f96e91f3f9be5194f7378d8bf"/><dir name="Adminhtml"><dir name="Observer"><file name="OrderGrid.php" hash="9df848aa164e180eb4d1aabad1ac6de1"/><file name="Ordergrid.php" hash="0a71bf13c0fdbc17692a4488747a4f00"/><file name="ShipmentGrid.php" hash="de7d9d622f260102359528811bc6654a"/><file name="ShipmentView.php" hash="9df38ce878025e4af09d6d796471b8d7"/></dir></dir><dir name="Sales"><dir name="Order"><file name="Api.php" hash="90f066fc4e00341bba836a3ad356517f"/></dir></dir></dir><dir name="etc"><file name="api.xml" hash="6f5f5494324d29ae5ed9b14c3826dbad"/><file name="config.xml" hash="8daf10d40e2078f244890f962298a826"/><file name="system.xml" hash="f2a526f1d32f243ef253e3d3b3883938"/></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Picqer_PostNL.xml" hash="908eb08b0b31bc34766f8cfa6aa4d713"/></dir></target></contents>
     <compatible/>
-    <dependencies><required><php><min>5.4.0</min><max>5.6.14</max></php><package><name>TIG_PostNL</name><channel>community</channel><min>1.5.3</min><max/></package></required></dependencies>
+    <dependencies><required><php><min>5.4.0</min><max>7.1.0</max></php><package><name>TIG_PostNL</name><channel>community</channel><min>1.7.0</min><max/></package></required></dependencies>
 </package>
